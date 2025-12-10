@@ -1,6 +1,6 @@
 import {HomeTemplate} from "../index"
 
-export function Home() {
+export function HomePage() {
     return (
     <HomeTemplate/>
     );

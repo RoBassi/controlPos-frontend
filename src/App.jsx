@@ -1,59 +1,138 @@
 import React, { useState } from 'react';
-import { GlobalStyles, MyRoutes } from "./index";
-import Login from './components/Login';
-import Dashboard from './components/Dashboard';
 import styled, { ThemeProvider } from 'styled-components';
+import { GlobalStyles } from './styles/GlobalStyles';
+import { MyRoutes } from './routers/routes';
+import { LoginForm } from './components/auth/LoginForm';
+import { Sidebar } from './components/layout/Sidebar';
+import { TopBar } from './components/layout/TopBar'; 
+import { useThemeStore, useAuthStore } from './store';
 import { Device } from "./styles/breakpoints";
-import { Sidebar } from './components/organismos/sidebar/Sidebar';
-import { useThemeStore } from './store/ThemeStore';
 
 export default function App() {
-  //const token = localStorage.getItem('token');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const {themeStyle} = useThemeStore();
+  const { themeStyle } = useThemeStore();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  if (!isAuthenticated) {
+    return (
+      <ThemeProvider theme={themeStyle}>
+        <GlobalStyles />
+        <ContainerLogin>
+            <LoginForm />
+        </ContainerLogin>
+      </ThemeProvider>
+    );
+  }
+
   return (
     <ThemeProvider theme={themeStyle}>
-        <Container className={sidebarOpen?"active":""}>
-          <GlobalStyles />
-          <section className='contentSidebar'><Sidebar state={sidebarOpen} setState={()=>setSidebarOpen(!sidebarOpen)}/></section>
-          <section className='contentHamburgerMenu'>Menu</section>
-          <section className='contentRouters'><MyRoutes /></section>
-        </Container>
+      <GlobalStyles /> 
+      
+      <Container className={sidebarOpen ? "active" : ""}>
+        
+        <section className='contentSidebar'>
+          <Sidebar 
+            state={sidebarOpen} 
+            setState={() => setSidebarOpen(!sidebarOpen)}
+          />
+        </section>
+        
+        <section className='contentMenu'>
+             <TopBar sidebarState={sidebarOpen} setSidebarState={setSidebarOpen} />
+        </section>
+        
+        <section className='contentRouters'>
+          <MyRoutes />
+        </section>
+
+        {sidebarOpen && (
+            <MobileOverlay onClick={() => setSidebarOpen(false)} />
+        )}
+
+      </Container>
     </ThemeProvider>
   );
 }
 
+
+const ContainerLogin = styled.div`
+  display: flex; justify-content: center; align-items: center; height: 100vh;
+  background-color: ${({ theme }) => theme.bgtotal};
+`;
+
 const Container = styled.main`
   display: grid;
   grid-template-columns: 1fr;
-  //background-color: black;
-  .contentSidebar{
-    display: none;
-    background-color: #1E88E5;
-  }
-  .contentHamburgerMenu{
-    position: absolute;
-    background-color: #F57C00;
-  }
-  .contentRouters{
-    //background-color: #131F24;
-    grid-column:1;
-    width: 100%;
-  }
-  @media ${Device.tablet} {
-    grid-template-columns: 88px 1fr;
-    &.active{
-      grid-template-columns: 260px 1fr;
-    }
-    .contentSidebar{
-      display: initial;
-    }
-    .contentHamburgerMenu{
-      display: none;
-    }
-    .contentRouters{
-    grid-column:2;
-    }
+  grid-template-rows: 70px 1fr;
+  height: 100vh;
+  position: relative; 
+  
+  .contentSidebar {
+    display: none; 
   }
 
+  &.active .contentSidebar {
+    display: block;
+    position: fixed; 
+    left: 0;
+    top: 0;
+    z-index: 2000; 
+    height: 100vh;
+  }
+
+  .contentMenu {
+    grid-column: 1;
+    grid-row: 1;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .contentRouters {
+    grid-column: 1;
+    grid-row: 2;
+    overflow-y: auto;
+    width: 100%;
+    padding: 20px;
+  }
+  
+  @media ${Device.tablet} {
+    grid-template-columns: 88px 1fr;
+    
+    &.active {
+      grid-template-columns: 260px 1fr;
+    }
+    
+    .contentSidebar {
+      display: initial;
+      position: static; 
+      grid-row: 1 / -1;
+    }
+    
+    &.active .contentSidebar {
+      position: static;
+    }
+
+    .contentMenu {
+      grid-column: 2;
+    }
+
+    .contentRouters {
+      grid-column: 2;
+    }
+  }
+`;
+
+const MobileOverlay = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1500;
+    
+    @media ${Device.tablet} {
+        display: none;
+    }
 `;

@@ -6,7 +6,7 @@ export const GlobalStyles = createGlobalStyle`
         box-sizing:border-box;
         background-color: ${({theme})=>theme.bgtotal};
         font-family:"Open Sans",sans-serif;
-        color:#fff;
+        color:${({ theme }) => theme.text};
     }
 
 `
